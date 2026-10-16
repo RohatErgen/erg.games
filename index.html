@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="tr" data-mode="game">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ERG.GAMES — Ali Rohat Ergen</title>
+  <meta name="description" content="Ali Rohat Ergen — oyun geliştiricisi ve makine mühendisliği öğrencisi. Oyunlar, portfolyo ve dersler.">
+  <meta name="theme-color" content="#070b10">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;600&family=IBM+Plex+Sans+Condensed:wght@500;700&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script>
+    // Dil ve mod sayfa çizilmeden uygulanır (yanıp sönme olmasın). ?mode=engineer|game kaydedilmeden zorlar.
+    (function () {
+      var d = document.documentElement, q = new URLSearchParams(location.search).get('mode');
+      var l = localStorage.getItem('lang') || (navigator.language.startsWith('tr') ? 'tr' : 'en');
+      if (l === 'en') d.classList.add('en'), d.lang = 'en';
+      d.dataset.mode = (q === 'engineer' || q === 'game' ? q : localStorage.getItem('mode')) === 'engineer' ? 'engineer' : 'game';
+    })();
+  </script>
+</head>
+<body>
+  <a class="skip" href="#main"><span class="tr">İçeriğe geç</span><span class="en">Skip to content</span></a>
+
+  <!-- Dekoratif katmanlar: oyun = tarama bandı; mühendis = sayfa çerçevesi + artı imleç; mod geçişi perdesi -->
+  <div class="scan-band game-only" aria-hidden="true"></div>
+  <div class="sheet eng-only" aria-hidden="true"></div>
+  <div class="xh xh-h eng-only" aria-hidden="true"></div>
+  <div class="xh xh-v eng-only" aria-hidden="true"></div>
+  <div class="coords eng-only" aria-hidden="true"><b>CURSOR</b> X <span id="cx">0000</span> · Y <span id="cy">0000</span></div>
+  <div class="wipe" id="wipe" aria-hidden="true">
+    <span class="wipe-txt w-eng"><span class="tr">Mühendis modu</span><span class="en">Engineer mode</span></span>
+    <span class="wipe-txt w-game"><span class="tr">Oyun modu</span><span class="en">Game mode</span></span>
+  </div>
+
+  <header class="nav">
+    <div class="wrap nav-in">
+      <a href="#top" class="logo"><span class="logo-mark" aria-hidden="true"></span>ERG<b>.</b>GAMES</a>
+
+      <div id="drawer" class="drawer">
+        <nav class="menu" id="menu" aria-label="Ana menü / Main menu">
+          <span class="sel nav-sel" aria-hidden="true"></span>
+          <a href="#games"><i>01</i><span class="lbl"><span class="tr">Yeni Oyun</span><span class="en">New Game</span></span><small><span class="tr">Oyunlar</span><span class="en">Games</span></small></a>
+          <a href="#portfolio"><i>02</i><span class="lbl"><span class="tr">Yükle</span><span class="en">Load</span></span><small><span class="tr">Portfolyo</span><span class="en">Portfolio</span></small></a>
+          <a href="#lessons"><i>03</i><span class="lbl"><span class="tr">Eğitim</span><span class="en">Training</span></span><small><span class="tr">Dersler</span><span class="en">Lessons</span></small></a>
+          <a href="#about"><i>04</i><span class="lbl"><span class="tr">Profil</span><span class="en">Profile</span></span><small><span class="tr">Hakkımda</span><span class="en">About</span></small></a>
+          <a href="#contact"><i>05</i><span class="lbl"><span class="tr">Telsiz</span><span class="en">Comms</span></span><small><span class="tr">İletişim</span><span class="en">Contact</span></small></a>
+        </nav>
+        <div class="tools">
+          <button type="button" id="trophy" class="tool trophy" aria-haspopup="dialog" aria-controls="ach-dlg">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v5a5 5 0 0 1-10 0V3zM7 5H3v2a4 4 0 0 0 4 4M17 5h4v2a4 4 0 0 1-4 4M12 13v4M8 21h8M9 17h6v4H9z"/></svg>
+            <span class="tool-lbl"><span class="tr">Başarımlar</span><span class="en">Achievements</span></span>
+            <span id="ach-count" class="ach-count">0/8</span>
+          </button>
+          <button type="button" id="con-btn" class="tool" aria-controls="console">
+            <span aria-hidden="true">&gt;_</span>
+            <span class="tool-lbl"><span class="tr">Konsol</span><span class="en">Console</span></span>
+          </button>
+          <button type="button" id="snd" class="tool snd" aria-pressed="false">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="snd-on" d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/><path class="snd-off" d="M16.5 9.5l5 5M21.5 9.5l-5 5"/></svg>
+            <span class="tool-lbl"><span class="tr">Ses efektleri</span><span class="en">Sound effects</span></span>
+          </button>
+        </div>
+      </div>
+
+      <button type="button" id="mode" class="mode-sw" role="switch" aria-checked="false" aria-label="Mühendis modu / Engineer mode">
+        <span class="ms-opt"><b aria-hidden="true">◈</b><span class="ms-t"><span class="tr">Oyun</span><span class="en">Game</span></span></span>
+        <span class="ms-opt"><b aria-hidden="true">⚙</b><span class="ms-t"><span class="tr">Müh.</span><span class="en">Eng.</span></span></span>
+      </button>
+      <button type="button" id="lang" class="lang" aria-label="Dili değiştir / Change language">
+        <span class="tr">EN</span><span class="en">TR</span>
+      </button>
+      <button type="button" id="burger" class="burger" aria-label="Menü / Menu" aria-controls="drawer" aria-expanded="false">
+        <i></i><i></i><i></i>
+      </button>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- HERO / ANA MENÜ -->
+    <section class="hero" id="top" aria-labelledby="hero-title">
+      <div class="hero-bg" aria-hidden="true">
+        <svg class="rings game-only" viewBox="0 0 600 600">
+          <circle class="r1" cx="300" cy="300" r="280"/>
+          <circle class="r2" cx="300" cy="300" r="230"/>
+          <circle class="r3" cx="300" cy="300" r="180"/>
+          <circle class="r4" cx="300" cy="300" r="130"/>
+          <path class="cross" d="M300 0v80M300 520v80M0 300h80M520 300h80"/>
+        </svg>
+        <div class="floor game-only"></div>
+        <div class="ruler-x eng-only"></div>
+      </div>
+
+      <div class="wrap hero-in">
+        <div class="hero-main">
+          <p class="kicker game-only"><span class="live" aria-hidden="true"></span><span class="tr">Sistem çevrimiçi // oyun geliştirici × mühendis</span><span class="en">System online // game developer × engineer</span></p>
+          <p class="fig eng-only"><span>FIG. 00 — <span class="tr">Genel montaj · ERG-ASM-001</span><span class="en">General assembly · ERG-ASM-001</span></span></p>
+          <h1 id="hero-title" class="holo" lang="tr" data-text="Ali Rohat&#10;Ergen">Ali Rohat<br><em>Ergen</em></h1>
+          <p class="lead">
+            <span class="tr">Oyunlar tasarlıyor, kodluyor ve yayınlıyorum. Bir yandan makine mühendisliği okuyor, bir yandan oyun geliştirme dersleri veriyorum.</span>
+            <span class="en">I design, code and ship games. I study mechanical engineering and teach game development on the side.</span>
+          </p>
+
+          <ul class="mainmenu" aria-label="Hızlı menü / Quick menu">
+            <li class="sel mm-sel" aria-hidden="true"></li>
+            <li><a href="#games" class="on"><span class="mm-arrow" aria-hidden="true">▶</span><span class="mm-t"><span class="tr">Yeni Oyun</span><span class="en">New Game</span></span><span class="mm-s"><span class="tr">Oyunlar</span><span class="en">Games</span></span></a></li>
+            <li><a href="#portfolio"><span class="mm-arrow" aria-hidden="true">▶</span><span class="mm-t"><span class="tr">Yükle</span><span class="en">Load</span></span><span class="mm-s"><span class="tr">Portfolyo</span><span class="en">Portfolio</span></span></a></li>
+            <li><a href="#lessons"><span class="mm-arrow" aria-hidden="true">▶</span><span class="mm-t"><span class="tr">Eğitim</span><span class="en">Training</span></span><span class="mm-s"><span class="tr">Dersler</span><span class="en">Lessons</span></span></a></li>
+            <li><a href="#contact"><span class="mm-arrow" aria-hidden="true">▶</span><span class="mm-t"><span class="tr">Telsiz</span><span class="en">Comms</span></span><span class="mm-s"><span class="tr">İletişime geç</span><span class="en">Get in touch</span></span></a></li>
+          </ul>
+          <p class="hint" aria-hidden="true"><kbd>↑</kbd><kbd>↓</kbd> <span class="tr">gezin</span><span class="en">navigate</span> &nbsp; <kbd>↵</kbd> <span class="tr">seç</span><span class="en">select</span> &nbsp; <kbd>`</kbd> <span class="tr">konsol</span><span class="en">console</span></p>
+        </div>
+
+        <!-- Etkileşimli çizim: dişliler sürüklenir / ok tuşlarıyla döner; kumanda üstüne gelince/dokununca patlar -->
+        <figure class="rig hud-frame" id="rig" aria-labelledby="rig-cap">
+          <div class="rig-sheet">
+            <div class="rig-bar" aria-hidden="true">
+              <span>FIG. 00 <b>//</b> <span class="tr">Atölye</span><span class="en">Workshop</span></span>
+              <span class="clock" id="clock">--:--:--</span>
+            </div>
+            <svg class="bp anim" id="bp" viewBox="0 0 640 600">
+              <defs>
+                <marker id="arr" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,1 L10,5 L0,9 z"/></marker>
+              </defs>
+
+              <g class="fade f1" aria-hidden="true">
+                <text class="lbl" x="14" y="26">FIG. 00</text>
+                <text class="lbl" x="14" y="44">ERG-ASM-001</text>
+                <g class="cl">
+                  <path d="M110 205H350M230 85V325M270 106H426M348 28V184M385 140.2H566M475.5 50V230M230 205L348 106L475.5 140.2"/>
+                </g>
+              </g>
+
+              <!-- Dişli takımı (dişler script.js'de üretilir) -->
+              <g class="gears" id="gears" tabindex="0" role="slider" aria-label="Dişli takımı — ok tuşlarıyla döndür / Gear train — spin with arrow keys" aria-valuemin="0" aria-valuemax="359" aria-valuenow="0" aria-valuetext="0°">
+                <rect class="focus-ring" x="108" y="26" width="470" height="296"/>
+                <g class="gear" data-z="18" data-x="230" data-y="205"></g>
+                <g class="gear" data-z="10" data-x="348" data-y="106"></g>
+                <g class="gear" data-z="14" data-x="475.5" data-y="140.2"></g>
+              </g>
+
+              <g class="dimg fade f4" aria-hidden="true">
+                <path class="ext" d="M92 95H222M92 315H222"/>
+                <line class="dl" x1="100" y1="97" x2="100" y2="313" marker-start="url(#arr)" marker-end="url(#arr)"/>
+                <text x="90" y="205" transform="rotate(-90 90 205)" text-anchor="middle">Ø220</text>
+                <text x="492" y="262">Z = 18 / 10 / 14</text>
+                <text x="492" y="282">i = 1.80 · 0.71</text>
+                <text x="492" y="302" class="rpm" id="rpm">n₁ = 0 rpm</text>
+                <path class="ext" d="M170 560V594M470 560V594"/>
+                <line class="dl" x1="172" y1="586" x2="468" y2="586" marker-start="url(#arr)" marker-end="url(#arr)"/>
+                <text x="320" y="580" text-anchor="middle">300</text>
+              </g>
+
+              <!-- Oyun kumandası: patlatılmış görünüş -->
+              <g transform="translate(170 360)">
+                <g class="pad-rig" id="pad-rig" tabindex="0" role="button" aria-pressed="false" aria-label="Kumandayı parçalarına ayır / Explode the controller">
+                  <rect class="hit" x="-90" y="-45" width="480" height="280"/>
+                  <rect class="focus-ring" x="-90" y="-45" width="480" height="280"/>
+                  <g class="sockets">
+                    <path d="M67,67 h16 v12 h12 v16 h-12 v12 h-16 v-12 h-12 v-16 h12 Z"/>
+                    <circle cx="225" cy="67" r="8"/><circle cx="243" cy="85" r="8"/><circle cx="225" cy="103" r="8"/><circle cx="207" cy="85" r="8"/>
+                    <circle cx="112" cy="112" r="16"/><circle cx="188" cy="112" r="16"/>
+                    <rect x="132" y="68" width="14" height="6" rx="3"/><rect x="154" y="68" width="14" height="6" rx="3"/>
+                  </g>
+                  <path class="trails" d="M75 85L-20 60M225 85L320 60M112 112V176M188 112V176M150 71V9M96 30V-14M204 30V-14"/>
+                  <g class="part p-body">
+                    <path class="d s3" pathLength="1" d="M60,40 C90,28 210,28 240,40 C282,54 302,120 292,160 C284,192 250,194 234,166 L214,136 L86,136 L66,166 C50,194 16,192 8,160 C-2,120 18,54 60,40 Z"/>
+                  </g>
+                  <g class="part" style="--dx:0px;--dy:-44px">
+                    <path class="d s4" pathLength="1" d="M70,37 C80,22 112,20 122,31 M230,37 C220,22 188,20 178,31"/>
+                  </g>
+                  <g class="part" style="--dx:-95px;--dy:-25px">
+                    <path class="d s4" pathLength="1" d="M67,67 h16 v12 h12 v16 h-12 v12 h-16 v-12 h-12 v-16 h12 Z"/>
+                  </g>
+                  <g class="part" style="--dx:95px;--dy:-25px">
+                    <circle class="d s4" pathLength="1" cx="225" cy="67" r="8"/><circle class="d s4" pathLength="1" cx="243" cy="85" r="8"/>
+                    <circle class="d s4" pathLength="1" cx="225" cy="103" r="8"/><circle class="d s4" pathLength="1" cx="207" cy="85" r="8"/>
+                  </g>
+                  <g class="part" style="--dx:0px;--dy:64px">
+                    <circle class="d s4" pathLength="1" cx="112" cy="112" r="16"/><circle class="d s4" pathLength="1" cx="112" cy="112" r="7"/>
+                    <circle class="d s4" pathLength="1" cx="188" cy="112" r="16"/><circle class="d s4" pathLength="1" cx="188" cy="112" r="7"/>
+                  </g>
+                  <g class="part" style="--dx:0px;--dy:-62px">
+                    <rect class="d s4" pathLength="1" x="132" y="68" width="14" height="6" rx="3"/><rect class="d s4" pathLength="1" x="154" y="68" width="14" height="6" rx="3"/>
+                  </g>
+                  <g class="callouts">
+                    <path class="ld" d="M-17 168L10 163M51 -30L73 -12M-54 40L-41 54M360 35L345 53M139 176H128M161 176H172M150 -13V5"/>
+                    <circle class="ball" cx="-28" cy="170" r="11"/><text class="bn" x="-28" y="174">1</text>
+                    <circle class="ball" cx="40" cy="-34" r="11"/><text class="bn" x="40" y="-30">2</text>
+                    <circle class="ball" cx="-62" cy="34" r="11"/><text class="bn" x="-62" y="38">3</text>
+                    <circle class="ball" cx="370" cy="28" r="11"/><text class="bn" x="370" y="32">4</text>
+                    <circle class="ball" cx="150" cy="176" r="11"/><text class="bn" x="150" y="180">5</text>
+                    <circle class="ball" cx="150" cy="-24" r="11"/><text class="bn" x="150" y="-20">6</text>
+                  </g>
+                </g>
+              </g>
+            </svg>
+            <figcaption id="rig-cap">
+              <p class="rig-hint"><span class="tr">Dişlileri tutup çevir · kumandanın üstüne gel ya da dokun</span><span class="en">Grab and spin the gears · hover or tap the controller</span></p>
+              <ol class="parts">
+                <li><span class="tr">Gövde</span><span class="en">Housing</span></li>
+                <li><span class="tr">Omuz tuşları</span><span class="en">Shoulder buttons</span></li>
+                <li><span class="tr">Yön tuşu</span><span class="en">D-pad</span></li>
+                <li><span class="tr">Eylem tuşları</span><span class="en">Face buttons</span></li>
+                <li><span class="tr">Analog çubuklar</span><span class="en">Thumbsticks</span></li>
+                <li><span class="tr">Menü tuşları</span><span class="en">Menu buttons</span></li>
+              </ol>
+            </figcaption>
+          </div>
+        </figure>
+      </div>
+
+      <div class="ticker" aria-hidden="true">
+        <div class="ticker-in">
+          <span>ERG.GAMES</span><span class="tr">Oyun geliştirme</span><span class="en">Game development</span><span class="tr">Makine mühendisliği</span><span class="en">Mechanical engineering</span><span class="tr">Dersler</span><span class="en">Lessons</span><span>ERG.GAMES</span><span class="tr">Oyun geliştirme</span><span class="en">Game development</span><span class="tr">Makine mühendisliği</span><span class="en">Mechanical engineering</span><span class="tr">Dersler</span><span class="en">Lessons</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- OYUNLAR -->
+    <section id="games" class="sec" aria-labelledby="games-h">
+      <div class="wrap">
+        <header class="sec-head">
+          <span class="sec-num">01</span>
+          <div>
+            <p class="sec-kick"><span class="tr">Yeni oyun</span><span class="en">New game</span></p>
+            <h2 id="games-h"><span class="tr">Oyunlar</span><span class="en">Games</span><span class="dim-line" aria-hidden="true"><i>A–A</i></span></h2>
+          </div>
+          <span class="sec-line" aria-hidden="true"></span>
+        </header>
+        <div class="cards">
+          <!-- Her oyun için bu <article> bloğunu kopyalayın; .thumb içine <img src="..." alt="..."> koyun -->
+          <article class="panel game">
+            <div class="thumb t1"><span class="badge"><span class="tr">Geliştiriliyor</span><span class="en">In development</span></span><svg class="pad" viewBox="0 0 64 40" aria-hidden="true"><path d="M16 4h32a13 13 0 0 1 13 13v6a12 12 0 0 1-21 8l-3-3h-10l-3 3A12 12 0 0 1 3 23v-6A13 13 0 0 1 16 4z"/><path d="M16 15v10M11 20h10"/><circle cx="45" cy="17" r="2"/><circle cx="50" cy="23" r="2"/></svg></div>
+            <div class="body">
+              <h3><span class="tr">Oyun Adı</span><span class="en">Game Title</span></h3>
+              <p class="meta">Mobil · Unreal Engine</p>
+              <p><span class="tr">Oyunun kısa tanıtımı buraya gelecek. Bir iki cümle: tür, ana fikir, oyuncunun ne yaptığı.</span><span class="en">A short pitch for the game goes here: genre, core idea, what the player does.</span></p>
+              <span class="press" aria-hidden="true"><kbd>A</kbd> <span class="tr">Seç</span><span class="en">Select</span></span>
+            </div>
+          </article>
+          <article class="panel game">
+            <div class="thumb t2"><span class="badge"><span class="tr">Yakında</span><span class="en">Coming soon</span></span><svg class="pad" viewBox="0 0 64 40" aria-hidden="true"><path d="M16 4h32a13 13 0 0 1 13 13v6a12 12 0 0 1-21 8l-3-3h-10l-3 3A12 12 0 0 1 3 23v-6A13 13 0 0 1 16 4z"/><path d="M16 15v10M11 20h10"/><circle cx="45" cy="17" r="2"/><circle cx="50" cy="23" r="2"/></svg></div>
+            <div class="body">
+              <h3><span class="tr">Oyun Adı</span><span class="en">Game Title</span></h3>
+              <p class="meta">PC · Steam</p>
+              <p><span class="tr">Oyunun kısa tanıtımı buraya gelecek.</span><span class="en">A short pitch for the game goes here.</span></p>
+              <span class="press" aria-hidden="true"><kbd>A</kbd> <span class="tr">Seç</span><span class="en">Select</span></span>
+            </div>
+          </article>
+          <article class="panel game">
+            <div class="thumb t3"><span class="badge"><span class="tr">Yayında</span><span class="en">Released</span></span><svg class="pad" viewBox="0 0 64 40" aria-hidden="true"><path d="M16 4h32a13 13 0 0 1 13 13v6a12 12 0 0 1-21 8l-3-3h-10l-3 3A12 12 0 0 1 3 23v-6A13 13 0 0 1 16 4z"/><path d="M16 15v10M11 20h10"/><circle cx="45" cy="17" r="2"/><circle cx="50" cy="23" r="2"/></svg></div>
+            <div class="body">
+              <h3><span class="tr">Oyun Adı</span><span class="en">Game Title</span></h3>
+              <p class="meta">Game Jam</p>
+              <p><span class="tr">Oyunun kısa tanıtımı buraya gelecek.</span><span class="en">A short pitch for the game goes here.</span></p>
+              <span class="press" aria-hidden="true"><kbd>A</kbd> <span class="tr">Seç</span><span class="en">Select</span></span>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- PORTFOLYO -->
+    <section id="portfolio" class="sec alt" aria-labelledby="portfolio-h">
+      <div class="wrap">
+        <header class="sec-head">
+          <span class="sec-num">02</span>
+          <div>
+            <p class="sec-kick"><span class="tr">Kayıt yükle</span><span class="en">Load save</span></p>
+            <h2 id="portfolio-h"><span class="tr">Portfolyo</span><span class="en">Portfolio</span><span class="dim-line" aria-hidden="true"><i>B–B</i></span></h2>
+          </div>
+          <span class="sec-line" aria-hidden="true"></span>
+        </header>
+        <div class="split">
+          <div class="panel col">
+            <h3 class="col-title"><span class="ct-ico" aria-hidden="true">◈</span><span class="tr">Oyun Geliştirme</span><span class="en">Game Development</span></h3>
+            <ul class="slots">
+              <li><span class="slot-n">SLOT 01</span><div><b><span class="tr">Proje adı</span><span class="en">Project name</span></b><span class="tr">Sistem tasarımı, C++ / Blueprint, yapay zekâ…</span><span class="en">Systems design, C++ / Blueprint, AI…</span></div></li>
+              <li><span class="slot-n">SLOT 02</span><div><b><span class="tr">Proje adı</span><span class="en">Project name</span></b><span class="tr">Kısa açıklama</span><span class="en">Short description</span></div></li>
+              <li><span class="slot-n">SLOT 03</span><div><b><span class="tr">Proje adı</span><span class="en">Project name</span></b><span class="tr">Kısa açıklama</span><span class="en">Short description</span></div></li>
+            </ul>
+          </div>
+          <div class="panel col">
+            <h3 class="col-title"><span class="ct-ico" aria-hidden="true">⚙</span><span class="tr">Mühendislik</span><span class="en">Engineering</span></h3>
+            <ul class="slots">
+              <li><span class="slot-n">SLOT 01</span><div><b><span class="tr">Proje adı</span><span class="en">Project name</span></b><span class="tr">CAD tasarımı, analiz, prototip…</span><span class="en">CAD design, analysis, prototype…</span></div></li>
+              <li><span class="slot-n">SLOT 02</span><div><b><span class="tr">Proje adı</span><span class="en">Project name</span></b><span class="tr">Kısa açıklama</span><span class="en">Short description</span></div></li>
+              <li><span class="slot-n">SLOT 03</span><div><b><span class="tr">Proje adı</span><span class="en">Project name</span></b><span class="tr">Kısa açıklama</span><span class="en">Short description</span></div></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DERSLER -->
+    <section id="lessons" class="sec" aria-labelledby="lessons-h">
+      <div class="wrap">
+        <header class="sec-head">
+          <span class="sec-num">03</span>
+          <div>
+            <p class="sec-kick"><span class="tr">Eğitim modu</span><span class="en">Training mode</span></p>
+            <h2 id="lessons-h"><span class="tr">Dersler</span><span class="en">Lessons</span><span class="dim-line" aria-hidden="true"><i>C–C</i></span></h2>
+          </div>
+          <span class="sec-line" aria-hidden="true"></span>
+        </header>
+        <div class="cards">
+          <article class="panel lesson">
+            <span class="ico" aria-hidden="true"><svg viewBox="0 0 48 48"><circle cx="24" cy="15" r="6"/><circle cx="10" cy="20" r="4.5"/><circle cx="38" cy="20" r="4.5"/><path d="M13 40c0-7 5-12 11-12s11 5 11 12M2 38c0-5 3-9 8-9M46 38c0-5-3-9-8-9"/></svg></span>
+            <p class="mode">MOD 01</p>
+            <h3><span class="tr">Grup Dersleri</span><span class="en">Group Lessons</span></h3>
+            <p><span class="tr">Küçük gruplarla, proje üzerinden oyun geliştirme.</span><span class="en">Project-based game development in small groups.</span></p>
+          </article>
+          <article class="panel lesson">
+            <span class="ico" aria-hidden="true"><svg viewBox="0 0 48 48"><circle cx="24" cy="15" r="8"/><path d="M10 42c0-9 6-15 14-15s14 6 14 15"/></svg></span>
+            <p class="mode">MOD 02</p>
+            <h3><span class="tr">Özel Ders</span><span class="en">Private Lessons</span></h3>
+            <p><span class="tr">Birebir, sizin hedefinize ve hızınıza göre.</span><span class="en">One-on-one, tailored to your goals and pace.</span></p>
+          </article>
+          <article class="panel lesson">
+            <span class="ico" aria-hidden="true"><svg viewBox="0 0 48 48"><rect x="5" y="9" width="38" height="25" rx="2"/><path d="M17 41h14M24 34v7M17 22a10 10 0 0 1 14 0M20.5 26a5 5 0 0 1 7 0"/></svg></span>
+            <p class="mode">MOD 03</p>
+            <h3><span class="tr">Online Ders</span><span class="en">Online Lessons</span></h3>
+            <p><span class="tr">Nerede olursanız olun, canlı ve uzaktan.</span><span class="en">Live and remote, wherever you are.</span></p>
+          </article>
+        </div>
+        <p class="note"><span class="tr">Ders içeriği ve ücretler için</span><span class="en">For curriculum and pricing,</span> <a href="#contact"><span class="tr">iletişime geçin →</span><span class="en">get in touch →</span></a></p>
+      </div>
+    </section>
+
+    <!-- HAKKIMDA + KARAKTER EKRANI (oyuncu kartı + yetenek ağacı) -->
+    <section id="about" class="sec alt" aria-labelledby="about-h">
+      <div class="wrap about">
+        <div class="photo-wrap hud-frame">
+          <!-- Fotoğraf: .photo içine <img src="..." alt="Ali Rohat Ergen"> koyun -->
+          <div class="photo" aria-hidden="true"><span>ARE</span><i class="photo-scan"></i><small><span class="tr">Fotoğraf</span><span class="en">Photo</span></small></div>
+        </div>
+        <div>
+          <header class="sec-head">
+            <span class="sec-num">04</span>
+            <div>
+              <p class="sec-kick"><span class="tr">Oyuncu profili</span><span class="en">Player profile</span></p>
+              <h2 id="about-h"><span class="tr">Hakkımda</span><span class="en">About</span><span class="dim-line" aria-hidden="true"><i>D–D</i></span></h2>
+            </div>
+            <span class="sec-line" aria-hidden="true"></span>
+          </header>
+          <div class="panel bio">
+            <p><span class="tr">Buraya kendi hikâyeniz gelecek: oyun geliştirmeye nasıl başladınız, neler yaptınız, mühendislik eğitiminizin oyun tasarımınıza nasıl yansıdığı.</span><span class="en">Your story goes here: how you started making games, what you've built, and how engineering shapes your game design.</span></p>
+          </div>
+          <p class="perks-t"><span class="tr">Yetenekler</span><span class="en">Perks</span></p>
+          <ul class="tags">
+            <li lang="en">Unreal Engine</li><li lang="en">C++</li><li lang="en">Blueprint</li><li lang="en">Game Design</li><li lang="en">CAD</li><li><span class="tr">Makine Tasarımı</span><span class="en">Mechanical Design</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="wrap char">
+        <aside class="profile-wrap hud-frame" aria-label="Oyuncu profili / Player profile">
+          <div class="panel profile">
+            <div class="pf-top">
+              <div class="avatar" aria-hidden="true"><span class="hex">ARE</span><b class="lvl">LVL <em>??</em></b></div>
+              <div>
+                <p class="pf-tag">PLAYER // ERG</p>
+                <p class="pf-name" lang="tr">Ali Rohat Ergen</p>
+                <p class="pf-class"><span class="tr">Oyun Geliştirici · Mühendis · Eğitmen</span><span class="en">Game Developer · Engineer · Instructor</span></p>
+              </div>
+            </div>
+            <div class="xp">
+              <div class="row"><span>XP</span><span class="demo"><span class="tr">Yer tutucu</span><span class="en">Placeholder</span></span></div>
+              <div class="bar main"><i style="--w:62%"></i></div>
+            </div>
+            <div class="pf-foot">
+              <div class="radar" aria-hidden="true"><i class="sweep"></i><b class="blip b1"></b><b class="blip b2"></b><b class="blip b3"></b></div>
+              <dl class="status">
+                <div><dt><span class="tr">Durum</span><span class="en">Status</span></dt><dd class="ok"><span class="tr">Çevrimiçi</span><span class="en">Online</span></dd></div>
+                <div><dt><span class="tr">Bölge</span><span class="en">Sector</span></dt><dd>erg.games</dd></div>
+                <div><dt><span class="tr">Görev</span><span class="en">Mission</span></dt><dd><span class="tr">Oyun · Mühendislik · Ders</span><span class="en">Games · Engineering · Lessons</span></dd></div>
+              </dl>
+            </div>
+          </div>
+        </aside>
+
+        <div class="panel tree-panel">
+          <p class="perks-t" id="tree-h"><span class="tr">Yetenek ağacı — bir düğüm seç</span><span class="en">Skill tree — pick a node</span></p>
+          <div class="tree-grid">
+            <div class="tree" role="group" aria-labelledby="tree-h">
+              <span class="tree-core" aria-hidden="true">ARE</span>
+              <div class="branch">
+                <p class="br-head"><span aria-hidden="true">◈</span> <span class="tr">Oyun Geliştirme</span><span class="en">Game Dev</span></p>
+                <ul class="chain">
+                  <li><button type="button" class="node" data-skill="ue" aria-pressed="true" aria-controls="sk-detail"><span lang="en">Unreal Engine</span></button></li>
+                  <li><button type="button" class="node" data-skill="cpp" aria-pressed="false" aria-controls="sk-detail"><span lang="en">C++</span></button></li>
+                  <li><button type="button" class="node" data-skill="bp" aria-pressed="false" aria-controls="sk-detail"><span lang="en">Blueprint</span></button></li>
+                  <li><button type="button" class="node" data-skill="gd" aria-pressed="false" aria-controls="sk-detail"><span lang="en">Game Design</span></button></li>
+                </ul>
+              </div>
+              <div class="branch">
+                <p class="br-head"><span aria-hidden="true">⚙</span> <span class="tr">Mühendislik</span><span class="en">Engineering</span></p>
+                <ul class="chain">
+                  <li><button type="button" class="node" data-skill="cad" aria-pressed="false" aria-controls="sk-detail"><span lang="en">CAD</span></button></li>
+                  <li><button type="button" class="node" data-skill="md" aria-pressed="false" aria-controls="sk-detail"><span class="tr">Makine Tasarımı</span><span class="en">Mechanical Design</span></button></li>
+                  <li><button type="button" class="node slot" data-skill="slot" aria-pressed="false" aria-controls="sk-detail"><span class="tr">+ Boş yuva</span><span class="en">+ Empty slot</span></button></li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Her düğümün açıklaması: metinleri burada düzenleyin -->
+            <div class="sk-detail" id="sk-detail" aria-live="polite">
+              <div class="sk-info" data-skill="ue">
+                <p class="sk-br"><span class="tr">Oyun Geliştirme</span><span class="en">Game Dev</span></p>
+                <h3 lang="en">Unreal Engine</h3>
+                <p><span class="tr">Bu yetenekle ilgili açıklama buraya gelecek: neler yaptınız, hangi projelerde kullandınız.</span><span class="en">A description of this skill goes here: what you've done with it and which projects used it.</span></p>
+              </div>
+              <div class="sk-info" data-skill="cpp" hidden>
+                <p class="sk-br"><span class="tr">Oyun Geliştirme</span><span class="en">Game Dev</span></p>
+                <h3 lang="en">C++</h3>
+                <p><span class="tr">Bu yetenekle ilgili açıklama buraya gelecek: neler yaptınız, hangi projelerde kullandınız.</span><span class="en">A description of this skill goes here: what you've done with it and which projects used it.</span></p>
+              </div>
+              <div class="sk-info" data-skill="bp" hidden>
+                <p class="sk-br"><span class="tr">Oyun Geliştirme</span><span class="en">Game Dev</span></p>
+                <h3 lang="en">Blueprint</h3>
+                <p><span class="tr">Bu yetenekle ilgili açıklama buraya gelecek: neler yaptınız, hangi projelerde kullandınız.</span><span class="en">A description of this skill goes here: what you've done with it and which projects used it.</span></p>
+              </div>
+              <div class="sk-info" data-skill="gd" hidden>
+                <p class="sk-br"><span class="tr">Oyun Geliştirme</span><span class="en">Game Dev</span></p>
+                <h3 lang="en">Game Design</h3>
+                <p><span class="tr">Bu yetenekle ilgili açıklama buraya gelecek: neler yaptınız, hangi projelerde kullandınız.</span><span class="en">A description of this skill goes here: what you've done with it and which projects used it.</span></p>
+              </div>
+              <div class="sk-info" data-skill="cad" hidden>
+                <p class="sk-br"><span class="tr">Mühendislik</span><span class="en">Engineering</span></p>
+                <h3 lang="en">CAD</h3>
+                <p><span class="tr">Bu yetenekle ilgili açıklama buraya gelecek: neler yaptınız, hangi projelerde kullandınız.</span><span class="en">A description of this skill goes here: what you've done with it and which projects used it.</span></p>
+              </div>
+              <div class="sk-info" data-skill="md" hidden>
+                <p class="sk-br"><span class="tr">Mühendislik</span><span class="en">Engineering</span></p>
+                <h3><span class="tr">Makine Tasarımı</span><span class="en">Mechanical Design</span></h3>
+                <p><span class="tr">Bu yetenekle ilgili açıklama buraya gelecek: neler yaptınız, hangi projelerde kullandınız.</span><span class="en">A description of this skill goes here: what you've done with it and which projects used it.</span></p>
+              </div>
+              <div class="sk-info" data-skill="slot" hidden>
+                <p class="sk-br"><span class="tr">Mühendislik</span><span class="en">Engineering</span></p>
+                <h3><span class="tr">Boş yuva</span><span class="en">Empty slot</span></h3>
+                <p><span class="tr">Bu yuvaya yeni bir yetenek eklenecek. Başlığı ve açıklamayı buradan düzenleyin.</span><span class="en">A new skill will go in this slot. Edit the title and description here.</span></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- İLETİŞİM -->
+    <section id="contact" class="sec contact" aria-labelledby="contact-h">
+      <div class="wrap">
+        <header class="sec-head">
+          <span class="sec-num">05</span>
+          <div>
+            <p class="sec-kick"><span class="tr">Telsiz kanalı</span><span class="en">Comms channel</span></p>
+            <h2 id="contact-h"><span class="tr">İletişim</span><span class="en">Contact</span><span class="dim-line" aria-hidden="true"><i>E–E</i></span></h2>
+          </div>
+          <span class="sec-line" aria-hidden="true"></span>
+        </header>
+        <div class="panel comms">
+          <div class="comms-main">
+            <p class="lead"><span class="tr">Bir proje, ders ya da iş birliği için yazın.</span><span class="en">Write to me about a project, lessons or a collaboration.</span></p>
+            <!-- TODO: gerçek e-posta adresi -->
+            <a class="mail" href="mailto:info@erg.games"><span class="mail-ico" aria-hidden="true">✉</span>info@erg.games</a>
+          </div>
+          <ul class="socials" lang="en">
+            <li><a href="https://www.youtube.com/@ERGDD" target="_blank" rel="noopener"><i>CH.01</i>YouTube</a></li>
+            <li><a href="https://www.instagram.com/ergdigitaldev" target="_blank" rel="noopener"><i>CH.02</i>Instagram</a></li>
+            <li><a href="https://x.com/rohat_ergen" target="_blank" rel="noopener"><i>CH.03</i>X</a></li>
+            <li><a href="https://www.linkedin.com/in/alirohatergen" target="_blank" rel="noopener"><i>CH.04</i>LinkedIn</a></li>
+            <li><a href="https://github.com/RohatErgen" target="_blank" rel="noopener"><i>CH.05</i>GitHub</a></li>
+            <li><a href="https://www.artstation.com/rohatergen1" target="_blank" rel="noopener"><i>CH.06</i>ArtStation</a></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div class="wrap foot-in">
+      <span>© <span class="year"></span> ERG.GAMES — Ali Rohat Ergen</span>
+      <span class="sys game-only"><span class="live" aria-hidden="true"></span>SYS OK</span>
+      <!-- Teknik resim antet kutusu (mühendis modu) -->
+      <div class="title-block eng-only" aria-label="Antet / Title block">
+        <div class="tb-logo">ERG<b>.</b>GAMES</div>
+        <div class="tb-wide"><small><span class="tr">Çizen</span><span class="en">Drawn by</span></small>A. R. ERGEN</div>
+        <div class="tb-wide"><small><span class="tr">Başlık</span><span class="en">Title</span></small><span class="tr">Kişisel Site</span><span class="en">Personal Site</span></div>
+        <div><small><span class="tr">Ölçek</span><span class="en">Scale</span></small>1:1</div>
+        <div><small><span class="tr">Sayfa</span><span class="en">Sheet</span></small>1 / 1</div>
+        <div><small>Rev</small>B</div>
+        <div><small><span class="tr">Tarih</span><span class="en">Date</span></small><span class="year"></span></div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Başarım bildirimleri -->
+  <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+
+  <!-- Başarım listesi -->
+  <dialog id="ach-dlg" class="ach-dlg" aria-labelledby="ach-h">
+    <div class="ach-in">
+      <div class="dlg-head">
+        <h2 id="ach-h"><span class="tr">Başarımlar</span><span class="en">Achievements</span> <span class="ach-count" id="ach-count2"></span></h2>
+        <button type="button" class="dlg-x" id="ach-x" aria-label="Kapat / Close">×</button>
+      </div>
+      <ul class="ach-list" id="ach-list"></ul>
+    </div>
+  </dialog>
+
+  <!-- Oyun konsolu: ` veya ~ ile aç, Esc ile kapat -->
+  <dialog id="console" class="console" aria-labelledby="con-title">
+    <div class="wrap con-in">
+      <div class="dlg-head">
+        <h2 id="con-title">ERG://<span class="tr">konsol</span><span class="en">console</span></h2>
+        <span class="con-tip" aria-hidden="true"><kbd>Esc</kbd> <span class="tr">kapat</span><span class="en">close</span></span>
+        <button type="button" class="dlg-x" id="con-x" aria-label="Konsolu kapat / Close console">×</button>
+      </div>
+      <div class="con-log" id="con-log" role="log" aria-live="polite"></div>
+      <form class="con-form" id="con-form" autocomplete="off">
+        <label for="con-in" class="prompt">&gt;<span class="sr-only"><span class="tr">Komut</span><span class="en">Command</span></span></label>
+        <input id="con-in" type="text" spellcheck="false" autocapitalize="off" enterkeyhint="send" autofocus>
+      </form>
+    </div>
+  </dialog>
+
+  <script src="script.js"></script>
+</body>
+</html>
